@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	"os/exec"
+
 	"github.com/gin-gonic/gin"
 	"gopkg.in/vansante/go-ffprobe.v2"
 )
@@ -30,14 +32,12 @@ func Mp4ToMkvConverter(c *gin.Context) {
 	}
 	//Transcode Mp4 To Mkv
 	outFile := "converted.mkv"
-	err = ffmpeg.Input(UploadFilePath).
-		Output(outFile, ffmpeg.KwArgs{"c:v": "copy", "c:a", "libx265"}).
-		OverWriteOutput().ErrorToStdOut().Run()
+	cmd := exec.Command("ffmpeg", "-i", UploadFilePath, outFile)
+	err = cmd.Run()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error in converting vedio", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "can't convert the vedio", "error": err.Error()})
 		return
 	}
 	c.File(outFile)
 	c.JSON(http.StatusOK, gin.H{"message": "vedio converted successfully"})
-	return
 }
